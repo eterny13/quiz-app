@@ -1,0 +1,21 @@
+services:
+  # WebSocketサーバー
+  - type: web
+    name: quiz-websocket-server
+    env: node
+    buildCommand: npm install
+    startCommand: node server/websocket-server.js
+    envVars:
+      - key: PORT
+        value: 3001
+    
+  # Webクライアント（Expo Web）
+  - type: web
+    name: quiz-web-client
+    env: static
+    buildCommand: npm install && npx expo export:web
+    staticPublishPath: ./web-build
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
