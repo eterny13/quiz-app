@@ -56,7 +56,7 @@ export const GameProvider = ({ children }) => {
       wsHost = window.location.hostname === 'localhost'
         ? 'localhost:3001'
         : window.location.host;
-      wsProtocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
+      wsProtocol = window.location.protocol === 'https' ? 'wss' : 'ws';
     } else {
       // フォールバック: ローカル開発
       wsHost = 'localhost:3001';
