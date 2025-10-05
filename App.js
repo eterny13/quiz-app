@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Alert, TextInput, FlatList, Platform } from 'react-native';
-import { quizQuestions } from './src/data/quizData';
 import { GameProvider, useGame } from './src/context/GameContext';
 import RoomScreen from './src/screens/RoomScreen';
 import WaitingRoomScreen from './src/screens/WaitingRoomScreen';

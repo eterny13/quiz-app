@@ -7,8 +7,6 @@ import {
   Alert
 } from 'react-native';
 import { useGame } from '../context/GameContext';
-import { sampleQuizQuestions } from '../data/sampleQuizData';
-import { quizQuestions } from '../data/quizData';
 
 export default function SyncQuizScreen({ user, onFinish }) {
   const {
@@ -21,7 +19,8 @@ export default function SyncQuizScreen({ user, onFinish }) {
     isMainQuiz,
     gameState,
     submitAnswer,
-    nextQuestion
+    nextQuestion,
+    currentQuestionData
   } = useGame();
 
   const [selectedAnswer, setSelectedAnswer] = useState(null);
@@ -128,8 +127,16 @@ export default function SyncQuizScreen({ user, onFinish }) {
     );
   }
 
-  const questions = isMainQuiz ? quizQuestions : sampleQuizQuestions;
-  const question = questions[currentQuestion];
+  // サーバーから受信した問題データを使用
+  if (!currentQuestionData) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.title}>問題を読み込み中...</Text>
+      </View>
+    );
+  }
+
+  const question = currentQuestionData;
   const totalQuestions = isMainQuiz ? 5 : 2;
 
   return (
@@ -164,7 +171,7 @@ export default function SyncQuizScreen({ user, onFinish }) {
             {selectedAnswer === currentQuestionResult.correctAnswer ? '✅ 正解！' : selectedAnswer !== null ? '❌ 不正解' : '⏰ 時間切れ'}
           </Text>
           <Text style={styles.correctAnswerText}>
-            正解: {question.options[currentQuestionResult.correctAnswer]}
+            正解: {currentQuestionResult.correctOption}
           </Text>
           {currentQuestionResult.correctCount !== undefined && (
             <Text style={styles.correctCountText}>
@@ -192,7 +199,7 @@ export default function SyncQuizScreen({ user, onFinish }) {
       {hasAnswered && !showResults && (
         <View style={styles.answeredContainer}>
           <Text style={styles.answeredText}>
-            回答完了！他のプレイヤーを待っています...
+            回答完了！
           </Text>
         </View>
       )}
@@ -200,7 +207,7 @@ export default function SyncQuizScreen({ user, onFinish }) {
       {showResults && (
         <View style={styles.waitingNextContainer}>
           <Text style={styles.waitingNextText}>
-            {isHost ? '次の問題を準備中...' : 'ホストが次の問題を準備中...'}
+            次の問題を準備中...
           </Text>
         </View>
       )}
