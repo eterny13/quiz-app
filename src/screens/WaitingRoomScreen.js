@@ -8,7 +8,6 @@ import {
   Alert
 } from 'react-native';
 import { useGame } from '../context/GameContext';
-import { sampleQuizQuestions } from '../data/sampleQuizData';
 
 export default function WaitingRoomScreen({ user, onBack }) {
   const gameContext = useGame();

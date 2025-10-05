@@ -26,6 +26,7 @@ export const GameProvider = ({ children }) => {
   const [currentQuestionResult, setCurrentQuestionResult] = useState(null);
   const [allAnswers, setAllAnswers] = useState([]);
   const [serverTimeOffset, setServerTimeOffset] = useState(0); // ms: serverTime - localTime
+  const [currentQuestionData, setCurrentQuestionData] = useState(null); // サーバーから受信した問題データ
 
   const wsRef = useRef(null);
   const timerRef = useRef(null);
@@ -198,6 +199,7 @@ export const GameProvider = ({ children }) => {
         setIsMainQuiz(message.isMainQuiz);
         setShowResults(false);
         setCurrentQuestionResult(null);
+        setCurrentQuestionData(message.questionData); // サーバーから受信した問題データを保存
         // duration をサーバー送信に合わせる（サンプル10s / 本番20s）
         const duration = message.isMainQuiz ? 20 : 10;
         // サーバー startTime を利用して残り時間を同期して開始
@@ -333,7 +335,7 @@ export const GameProvider = ({ children }) => {
     setInstructionsTimeLeft(total);
     timerRef.current = setInterval(() => {
       setInstructionsTimeLeft((prev) => {
-        if (prev <= 1) {
+        if (prev == 0) {
           clearTimer();
           if (isHost) {
             sendMessage({ type: 'instructionsEnd', timestamp: Date.now() });
@@ -368,7 +370,7 @@ export const GameProvider = ({ children }) => {
     setPreparationTimeLeft(total);
     timerRef.current = setInterval(() => {
       setPreparationTimeLeft((prev) => {
-        if (prev <= 1) {
+        if (prev == 0) {
           clearTimer();
           if (isHost) {
             sendMessage({ type: 'preparationEnd', timestamp: Date.now() });
@@ -403,7 +405,7 @@ export const GameProvider = ({ children }) => {
     setTimeLeft(dur);
     timerRef.current = setInterval(() => {
       setTimeLeft((prev) => {
-        if (prev <= 1) {
+        if (prev == 0) {
           clearTimer();
           return 0;
         }
@@ -506,6 +508,7 @@ export const GameProvider = ({ children }) => {
       showResults,
       currentQuestionResult,
       allAnswers,
+      currentQuestionData,
       connectToRoom,
       startGame,
       setPlayerReady,

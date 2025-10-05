@@ -5,6 +5,55 @@ const http = require('http');
 const server = http.createServer();
 const wss = new WebSocket.Server({ server });
 
+// クイズデータ
+const sampleQuizQuestions = [
+  {
+    id: 'sample1',
+    question: '日本の首都はどこですか？',
+    options: ['東京', '大阪', '京都', '名古屋'],
+    correctAnswer: 0
+  },
+  {
+    id: 'sample2',
+    question: '1 + 1 = ?',
+    options: ['1', '2', '3', '4'],
+    correctAnswer: 1
+  }
+];
+
+const mainQuizQuestions = [
+  {
+    id: 1,
+    question: "日本の首都はどこですか？",
+    options: ["大阪", "東京", "京都", "名古屋"],
+    correctAnswer: 1
+  },
+  {
+    id: 2,
+    question: "地球で最も大きな海洋は？",
+    options: ["大西洋", "インド洋", "太平洋", "北極海"],
+    correctAnswer: 2
+  },
+  {
+    id: 3,
+    question: "1年は何日ですか？",
+    options: ["364日", "365日", "366日", "367日"],
+    correctAnswer: 1
+  },
+  {
+    id: 4,
+    question: "富士山の高さは約何メートル？",
+    options: ["3,776m", "3,677m", "3,767m", "3,876m"],
+    correctAnswer: 0
+  },
+  {
+    id: 5,
+    question: "日本で最も長い川は？",
+    options: ["利根川", "信濃川", "石狩川", "北上川"],
+    correctAnswer: 1
+  }
+];
+
 // ルーム管理
 const rooms = new Map();
 
@@ -104,11 +153,16 @@ class Room {
     });
 
     // 初回問題開始を全員に通知（タイムスタンプ同期用）
+    const questionData = sampleQuizQuestions[this.currentQuestion];
     this.broadcast({
       type: 'questionStart',
       questionIndex: this.currentQuestion,
       isMainQuiz: false,
       startTime: this.questionStartTime,
+      questionData: {
+        question: questionData.question,
+        options: questionData.options
+      },
       timestamp: Date.now()
     });
 
@@ -146,11 +200,16 @@ class Room {
     });
 
     // 初回問題開始を全員に通知（タイムスタンプ同期用）
+    const questionData = mainQuizQuestions[this.currentQuestion];
     this.broadcast({
       type: 'questionStart',
       questionIndex: this.currentQuestion,
       isMainQuiz: true,
       startTime: this.questionStartTime,
+      questionData: {
+        question: questionData.question,
+        options: questionData.options
+      },
       timestamp: Date.now()
     });
 
@@ -176,32 +235,10 @@ class Room {
   }
 
   showQuestionResults() {
-    let correctAnswer, correctOption;
-    
-    if (!this.isMainQuiz) {
-      // サンプルクイズの正解データ
-      const sampleQuizAnswers = [0, 1]; // 問題1: 東京(0), 問題2: 2(1)
-      const sampleQuizOptions = [
-        ['東京', '大阪', '京都', '名古屋'],
-        ['1', '2', '3', '4']
-      ];
-      
-      correctAnswer = sampleQuizAnswers[this.currentQuestion];
-      correctOption = sampleQuizOptions[this.currentQuestion][correctAnswer];
-    } else {
-      // 本番クイズの正解データ
-      const mainQuizAnswers = [1, 2, 1, 0, 1]; // quizData.js の正解に対応
-      const mainQuizOptions = [
-        ['大阪', '東京', '京都', '名古屋'],
-        ['大西洋', 'インド洋', '太平洋', '北極海'],
-        ['364日', '365日', '366日', '367日'],
-        ['3,776m', '3,677m', '3,767m', '3,876m'],
-        ['利根川', '信濃川', '石狩川', '北上川']
-      ];
-      
-      correctAnswer = mainQuizAnswers[this.currentQuestion];
-      correctOption = mainQuizOptions[this.currentQuestion][correctAnswer];
-    }
+    const questions = this.isMainQuiz ? mainQuizQuestions : sampleQuizQuestions;
+    const currentQuestionData = questions[this.currentQuestion];
+    const correctAnswer = currentQuestionData.correctAnswer;
+    const correctOption = currentQuestionData.options[correctAnswer];
     
     // 正解者数を計算
     let correctCount = 0;
@@ -245,13 +282,17 @@ class Room {
         this.startPreparation();
       } else {
         console.log('サンプルクイズ次の問題:', this.currentQuestion);
-        this.questionStartTime = Date.now();
         
+        const questionData = sampleQuizQuestions[this.currentQuestion];
         this.broadcast({
           type: 'questionStart',
           questionIndex: this.currentQuestion,
           isMainQuiz: false,
-          startTime: this.questionStartTime,
+          startTime: Date.now(),
+          questionData: {
+            question: questionData.question,
+            options: questionData.options
+          },
           timestamp: Date.now()
         });
 
@@ -267,13 +308,17 @@ class Room {
         this.endGame();
       } else {
         console.log('本番クイズ次の問題:', this.currentQuestion);
-        this.questionStartTime = Date.now();
         
+        const questionData = mainQuizQuestions[this.currentQuestion];
         this.broadcast({
           type: 'questionStart',
           questionIndex: this.currentQuestion,
           isMainQuiz: true,
-          startTime: this.questionStartTime,
+          startTime: Date.now(),
+          questionData: {
+            question: questionData.question,
+            options: questionData.options
+          },
           timestamp: Date.now()
         });
 
@@ -288,10 +333,6 @@ class Room {
   endGame() {
     this.gameState = 'finished';
     
-    // 正解データ
-    const sampleCorrectAnswers = [0, 1]; // サンプルクイズの正解
-    const mainCorrectAnswers = [1, 2, 1, 0, 1]; // 本番クイズの正解（quizData.jsに対応）
-    
     // スコアと回答時間を計算
     this.players.forEach((player, playerId) => {
       let score = 0;
@@ -301,8 +342,9 @@ class Room {
       for (let questionIndex = 0; questionIndex < 5; questionIndex++) {
         const questionAnswers = this.answers.get(questionIndex);
         const playerAnswer = questionAnswers ? questionAnswers.get(playerId) : null;
+        const correctAnswer = mainQuizQuestions[questionIndex].correctAnswer;
         
-        if (playerAnswer && playerAnswer.answerIndex === mainCorrectAnswers[questionIndex]) {
+        if (playerAnswer && playerAnswer.answerIndex === correctAnswer) {
           // 正解の場合
           score++;
           totalAnswerTime += playerAnswer.answerTime || 0;
