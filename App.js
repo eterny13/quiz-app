@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Alert, TextInput, FlatList, Platform } from 'react-native';
 import { GameProvider, useGame } from './src/context/GameContext';
+import { quizQuestions } from './src/data/quizData';
 import RoomScreen from './src/screens/RoomScreen';
 import WaitingRoomScreen from './src/screens/WaitingRoomScreen';
 import SyncQuizScreen from './src/screens/SyncQuizScreen';
@@ -630,11 +631,6 @@ function AppContent() {
         </View>
 
         <Text style={styles.question}>{question.question}</Text>
-
-        {/* デバッグ情報 */}
-        <Text style={{ fontSize: 12, color: '#999', textAlign: 'center', marginBottom: 10 }}>
-          Debug: Q{currentQuestion} - {question.id} - {question.question.substring(0, 20)}...
-        </Text>
 
         {showResults && currentQuestionResult && (
           <View style={styles.resultContainer}>
