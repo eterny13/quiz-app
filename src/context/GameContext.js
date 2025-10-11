@@ -47,10 +47,10 @@ export const GameProvider = ({ children }) => {
     // 環境変数または自動検出でWebSocketサーバーのURLを決定
     let wsHost, wsProtocol;
 
-    if (process.env.REACT_APP_WS_HOST) {
+    if (process.env.EXPO_PUBLIC_WS_HOST) {
       // 環境変数が設定されている場合
-      wsHost = process.env.REACT_APP_WS_HOST;
-      wsProtocol = process.env.REACT_APP_WS_PROTOCOL || 'ws';
+      wsHost = process.env.EXPO_PUBLIC_WS_HOST;
+      wsProtocol = process.env.EXPO_PUBLIC_WS_PROTOCOL || 'ws';
     } else if (typeof window !== 'undefined' && window.location) {
       // ブラウザ環境: 現在のホストを使用
       wsHost = window.location.hostname === 'localhost'
