@@ -33,6 +33,25 @@ export const GameProvider = ({ children }) => {
 
   const getServerNow = () => Date.now() + serverTimeOffset;
 
+  // 時刻同期を複数回実行してより正確なオフセットを計算
+  const performTimeSync = () => {
+    let syncCount = 0;
+    const maxSyncs = 3;
+    const offsets = [];
+
+    const syncOnce = () => {
+      const clientSendTime = Date.now();
+      sendMessage({
+        type: 'timeSync',
+        clientSendTime: clientSendTime,
+        timestamp: clientSendTime
+      });
+    };
+
+    // 初回同期
+    syncOnce();
+  };
+
   // タイマーをクリアする関数
   const clearTimer = () => {
     if (timerRef.current) {
@@ -85,12 +104,8 @@ export const GameProvider = ({ children }) => {
           }];
         });
 
-        // time sync: サーバー時刻を取得して差分を計算する
-        sendMessage({
-          type: 'timeSync',
-          clientTime: Date.now(),
-          timestamp: Date.now()
-        });
+        // time sync: より正確な同期のために複数回測定
+        performTimeSync();
 
         // 参加メッセージを送信
         sendMessage({
@@ -141,11 +156,24 @@ export const GameProvider = ({ children }) => {
 
     switch (message.type) {
       case 'timeSync':
-        // サーバー時刻との差を計算して保持
-        if (message.serverTime) {
-          const offset = message.serverTime - Date.now();
+        // より正確な時刻同期: ネットワーク遅延を考慮
+        if (message.serverTime && message.clientSendTime) {
+          const clientReceiveTime = Date.now();
+          const roundTripTime = clientReceiveTime - message.clientSendTime;
+          const networkDelay = roundTripTime / 2;
+          
+          // サーバー時刻 + ネットワーク遅延の半分 - クライアント受信時刻
+          const offset = message.serverTime + networkDelay - clientReceiveTime;
           setServerTimeOffset(offset);
-          console.log('timeSync 受信. serverTime:', message.serverTime, 'offset(ms):', offset);
+          
+          console.log('timeSync 受信:', {
+            serverTime: message.serverTime,
+            clientSendTime: message.clientSendTime,
+            clientReceiveTime: clientReceiveTime,
+            roundTripTime: roundTripTime,
+            networkDelay: networkDelay,
+            offset: offset
+          });
         }
         break;
 
@@ -317,8 +345,18 @@ export const GameProvider = ({ children }) => {
     const total = 15;
     if (startTime) {
       // サーバー時刻基準で残りを計算
-      const elapsed = Math.floor((getServerNow() - startTime) / 1000);
+      const serverNow = getServerNow();
+      const elapsed = Math.floor((serverNow - startTime) / 1000);
       const remaining = Math.max(0, total - elapsed);
+      
+      console.log('説明タイマー開始:', {
+        startTime: startTime,
+        serverNow: serverNow,
+        elapsed: elapsed,
+        remaining: remaining,
+        serverTimeOffset: serverTimeOffset
+      });
+      
       setInstructionsTimeLeft(remaining);
       if (remaining === 0) return;
       timerRef.current = setInterval(() => {
@@ -327,7 +365,7 @@ export const GameProvider = ({ children }) => {
         if (rem <= 0) {
           clearTimer();
         }
-      }, 1000);
+      }, 100); // 100msごとに更新してより滑らかに
       return;
     }
 
@@ -362,7 +400,7 @@ export const GameProvider = ({ children }) => {
         if (rem <= 0) {
           clearTimer();
         }
-      }, 1000);
+      }, 100); // 100msごとに更新してより滑らかに
       return;
     }
 
@@ -387,8 +425,20 @@ export const GameProvider = ({ children }) => {
     clearTimer();
     const dur = duration != null ? duration : (isMainQuiz ? 20 : 10);
     if (startTime) {
-      const elapsed = Math.floor((getServerNow() - startTime) / 1000);
+      const serverNow = getServerNow();
+      const elapsed = Math.floor((serverNow - startTime) / 1000);
       const remaining = Math.max(0, dur - elapsed);
+      
+      console.log('問題タイマー開始:', {
+        startTime: startTime,
+        serverNow: serverNow,
+        elapsed: elapsed,
+        remaining: remaining,
+        duration: dur,
+        isMainQuiz: isMainQuiz,
+        serverTimeOffset: serverTimeOffset
+      });
+      
       setTimeLeft(remaining);
       if (remaining === 0) return;
       timerRef.current = setInterval(() => {
@@ -397,7 +447,7 @@ export const GameProvider = ({ children }) => {
         if (rem <= 0) {
           clearTimer();
         }
-      }, 1000);
+      }, 100); // 100msごとに更新してより滑らかに
       return;
     }
 

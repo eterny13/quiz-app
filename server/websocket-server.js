@@ -121,11 +121,11 @@ class Room {
       console.log('⚠️ ゲーム開始失敗: 既にゲーム中です (state:', this.gameState, ')');
       return;
     }
-    
+
     console.log('🎮 ゲーム開始 - 説明フェーズへ');
     console.log('  プレイヤー数:', this.players.size);
     this.gameState = 'instructions';
-    
+
     const startTime = Date.now();
     console.log('  gameStartメッセージをブロードキャスト - startTime:', startTime);
     this.broadcast({
@@ -145,37 +145,40 @@ class Room {
     this.gameState = 'sampleQuiz';
     this.currentQuestion = 0;
     this.isMainQuiz = false;
-    this.questionStartTime = Date.now();
-    
+
     this.broadcast({
       type: 'instructionsEnd',
       timestamp: Date.now()
     });
 
-    // 初回問題開始を全員に通知（タイムスタンプ同期用）
-    const questionData = sampleQuizQuestions[this.currentQuestion];
-    this.broadcast({
-      type: 'questionStart',
-      questionIndex: this.currentQuestion,
-      isMainQuiz: false,
-      startTime: this.questionStartTime,
-      questionData: {
-        question: questionData.question,
-        options: questionData.options
-      },
-      timestamp: Date.now()
-    });
-
-    // 10秒後に結果表示
+    // 少し遅延してから問題開始（メッセージ送信の時間を確保）
     setTimeout(() => {
-      this.showQuestionResults();
-    }, 10000);
+      this.questionStartTime = Date.now();
+
+      const questionData = sampleQuizQuestions[this.currentQuestion];
+      this.broadcast({
+        type: 'questionStart',
+        questionIndex: this.currentQuestion,
+        isMainQuiz: false,
+        startTime: this.questionStartTime,
+        questionData: {
+          question: questionData.question,
+          options: questionData.options
+        },
+        timestamp: Date.now()
+      });
+
+      // 10秒後に結果表示
+      setTimeout(() => {
+        this.showQuestionResults();
+      }, 10000);
+    }, 100); // 100ms遅延
   }
 
   startPreparation() {
     console.log('本番準備フェーズ開始');
     this.gameState = 'preparation';
-    
+
     this.broadcast({
       type: 'sampleQuizEnd',
       timestamp: Date.now()
@@ -192,38 +195,41 @@ class Room {
     this.gameState = 'mainQuiz';
     this.currentQuestion = 0;
     this.isMainQuiz = true;
-    this.questionStartTime = Date.now();
-    
+
     this.broadcast({
       type: 'preparationEnd',
       timestamp: Date.now()
     });
 
-    // 初回問題開始を全員に通知（タイムスタンプ同期用）
-    const questionData = mainQuizQuestions[this.currentQuestion];
-    this.broadcast({
-      type: 'questionStart',
-      questionIndex: this.currentQuestion,
-      isMainQuiz: true,
-      startTime: this.questionStartTime,
-      questionData: {
-        question: questionData.question,
-        options: questionData.options
-      },
-      timestamp: Date.now()
-    });
-
-    // 20秒後に結果表示
+    // 少し遅延してから問題開始（メッセージ送信の時間を確保）
     setTimeout(() => {
-      this.showQuestionResults();
-    }, 20000);
+      this.questionStartTime = Date.now();
+
+      const questionData = mainQuizQuestions[this.currentQuestion];
+      this.broadcast({
+        type: 'questionStart',
+        questionIndex: this.currentQuestion,
+        isMainQuiz: true,
+        startTime: this.questionStartTime,
+        questionData: {
+          question: questionData.question,
+          options: questionData.options
+        },
+        timestamp: Date.now()
+      });
+
+      // 20秒後に結果表示
+      setTimeout(() => {
+        this.showQuestionResults();
+      }, 20000);
+    }, 100); // 100ms遅延
   }
 
   submitAnswer(playerId, questionIndex, answerIndex, answerTime) {
     if (!this.answers.has(questionIndex)) {
       this.answers.set(questionIndex, new Map());
     }
-    
+
     // 回答時間を記録（ミリ秒）
     this.answers.get(questionIndex).set(playerId, {
       answerIndex,
@@ -239,7 +245,7 @@ class Room {
     const currentQuestionData = questions[this.currentQuestion];
     const correctAnswer = currentQuestionData.correctAnswer;
     const correctOption = currentQuestionData.options[correctAnswer];
-    
+
     // 正解者数を計算
     let correctCount = 0;
     const questionAnswers = this.answers.get(this.currentQuestion);
@@ -250,9 +256,9 @@ class Room {
         }
       });
     }
-    
+
     console.log('結果表示:', this.currentQuestion, '正解:', correctAnswer, '正解者数:', correctCount);
-    
+
     this.broadcast({
       type: 'questionEnd',
       result: {
@@ -274,7 +280,7 @@ class Room {
 
   nextQuestion() {
     this.currentQuestion++;
-    
+
     if (!this.isMainQuiz) {
       // サンプルクイズ中
       if (this.currentQuestion >= 2) {
@@ -282,24 +288,29 @@ class Room {
         this.startPreparation();
       } else {
         console.log('サンプルクイズ次の問題:', this.currentQuestion);
-        
-        const questionData = sampleQuizQuestions[this.currentQuestion];
-        this.broadcast({
-          type: 'questionStart',
-          questionIndex: this.currentQuestion,
-          isMainQuiz: false,
-          startTime: Date.now(),
-          questionData: {
-            question: questionData.question,
-            options: questionData.options
-          },
-          timestamp: Date.now()
-        });
 
-        // 10秒後に結果表示
+        // 少し遅延してから問題開始
         setTimeout(() => {
-          this.showQuestionResults();
-        }, 10000);
+          this.questionStartTime = Date.now();
+
+          const questionData = sampleQuizQuestions[this.currentQuestion];
+          this.broadcast({
+            type: 'questionStart',
+            questionIndex: this.currentQuestion,
+            isMainQuiz: false,
+            startTime: this.questionStartTime,
+            questionData: {
+              question: questionData.question,
+              options: questionData.options
+            },
+            timestamp: Date.now()
+          });
+
+          // 10秒後に結果表示
+          setTimeout(() => {
+            this.showQuestionResults();
+          }, 10000);
+        }, 100); // 100ms遅延
       }
     } else {
       // 本番クイズ中
@@ -308,42 +319,47 @@ class Room {
         this.endGame();
       } else {
         console.log('本番クイズ次の問題:', this.currentQuestion);
-        
-        const questionData = mainQuizQuestions[this.currentQuestion];
-        this.broadcast({
-          type: 'questionStart',
-          questionIndex: this.currentQuestion,
-          isMainQuiz: true,
-          startTime: Date.now(),
-          questionData: {
-            question: questionData.question,
-            options: questionData.options
-          },
-          timestamp: Date.now()
-        });
 
-        // 20秒後に結果表示
+        // 少し遅延してから問題開始
         setTimeout(() => {
-          this.showQuestionResults();
-        }, 20000);
+          this.questionStartTime = Date.now();
+
+          const questionData = mainQuizQuestions[this.currentQuestion];
+          this.broadcast({
+            type: 'questionStart',
+            questionIndex: this.currentQuestion,
+            isMainQuiz: true,
+            startTime: this.questionStartTime,
+            questionData: {
+              question: questionData.question,
+              options: questionData.options
+            },
+            timestamp: Date.now()
+          });
+
+          // 20秒後に結果表示
+          setTimeout(() => {
+            this.showQuestionResults();
+          }, 20000);
+        }, 100); // 100ms遅延
       }
     }
   }
 
   endGame() {
     this.gameState = 'finished';
-    
+
     // スコアと回答時間を計算
     this.players.forEach((player, playerId) => {
       let score = 0;
       let totalAnswerTime = 0; // 合計回答時間（ミリ秒）
-      
+
       // 本番クイズのみをカウント（問題インデックス0-4）
       for (let questionIndex = 0; questionIndex < 5; questionIndex++) {
         const questionAnswers = this.answers.get(questionIndex);
         const playerAnswer = questionAnswers ? questionAnswers.get(playerId) : null;
         const correctAnswer = mainQuizQuestions[questionIndex].correctAnswer;
-        
+
         if (playerAnswer && playerAnswer.answerIndex === correctAnswer) {
           // 正解の場合
           score++;
@@ -353,10 +369,10 @@ class Room {
           totalAnswerTime += 20000;
         }
       }
-      
+
       player.score = score;
       player.totalAnswerTime = totalAnswerTime;
-      
+
       console.log(`Player ${player.name}: score=${score}, totalAnswerTime=${totalAnswerTime}ms`);
     });
 
@@ -371,7 +387,7 @@ class Room {
 
 wss.on('connection', (ws, req) => {
   console.log('新しいWebSocket接続');
-  
+
   let playerId = null;
   let roomId = null;
 
@@ -385,34 +401,39 @@ wss.on('connection', (ws, req) => {
           // ルーム参加
           roomId = extractRoomIdFromUrl(req.url);
           playerId = Date.now().toString() + Math.random().toString(36).substring(2);
-          
+
           if (!rooms.has(roomId)) {
             // 新しいルーム作成
             rooms.set(roomId, new Room(roomId, playerId));
           }
-          
+
           const room = rooms.get(roomId);
           room.addPlayer(playerId, message.userName, ws, message.isHost);
-          
+
           // 参加通知
           room.broadcast({
             type: 'playerJoined',
             players: room.getPlayersArray(),
             timestamp: Date.now()
           });
-          
+
           console.log(`Player ${message.userName} joined room ${roomId}`);
           break;
 
         case 'timeSync':
           // クライアントの時刻同期リクエストにサーバー時刻で応答
           try {
+            const serverTime = Date.now();
             ws.send(JSON.stringify({
               type: 'timeSync',
-              serverTime: Date.now(),
-              timestamp: Date.now()
+              serverTime: serverTime,
+              clientSendTime: message.clientSendTime, // クライアントの送信時刻をそのまま返す
+              timestamp: serverTime
             }));
-            console.log('timeSync へ応答:', Date.now());
+            console.log('timeSync へ応答:', {
+              serverTime: serverTime,
+              clientSendTime: message.clientSendTime
+            });
           } catch (e) {
             console.error('timeSync 応答エラー:', e);
           }
@@ -459,7 +480,7 @@ wss.on('connection', (ws, req) => {
           if (roomId && rooms.has(roomId)) {
             const room = rooms.get(roomId);
             room.removePlayer(playerId);
-            
+
             if (room.players.size === 0) {
               rooms.delete(roomId);
               console.log(`Room ${roomId} deleted`);
@@ -483,11 +504,11 @@ wss.on('connection', (ws, req) => {
 
   ws.on('close', () => {
     console.log('WebSocket接続終了');
-    
+
     if (roomId && rooms.has(roomId) && playerId) {
       const room = rooms.get(roomId);
       room.removePlayer(playerId);
-      
+
       if (room.players.size === 0) {
         rooms.delete(roomId);
         console.log(`Room ${roomId} deleted`);
