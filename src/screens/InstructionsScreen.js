@@ -36,14 +36,14 @@ export default function InstructionsScreen() {
         <View style={styles.instructionItem}>
           <Text style={styles.instructionIcon}>📝</Text>
           <Text style={styles.instructionText}>
-            これから2問のサンプルクイズを行います
+            これから5問のサンプルクイズを行います
           </Text>
         </View>
 
         <View style={styles.instructionItem}>
           <Text style={styles.instructionIcon}>⏰</Text>
           <Text style={styles.instructionText}>
-            各問題の制限時間は10秒です
+            各問題の制限時間は20秒です
           </Text>
         </View>
 

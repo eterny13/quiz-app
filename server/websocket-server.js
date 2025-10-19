@@ -9,48 +9,156 @@ const wss = new WebSocket.Server({ server });
 const sampleQuizQuestions = [
   {
     id: 'sample1',
-    question: '日本の首都はどこですか？',
-    options: ['東京', '大阪', '京都', '名古屋'],
-    correctAnswer: 0
-  },
-  {
-    id: 'sample2',
-    question: '1 + 1 = ?',
-    options: ['1', '2', '3', '4'],
-    correctAnswer: 1
-  }
-];
-
-const mainQuizQuestions = [
-  {
-    id: 1,
-    question: "日本の首都はどこですか？",
-    options: ["大阪", "東京", "京都", "名古屋"],
-    correctAnswer: 1
-  },
-  {
-    id: 2,
     question: "地球で最も大きな海洋は？",
     options: ["大西洋", "インド洋", "太平洋", "北極海"],
     correctAnswer: 2
   },
   {
-    id: 3,
-    question: "1年は何日ですか？",
-    options: ["364日", "365日", "366日", "367日"],
-    correctAnswer: 1
+    id: 'sample2',
+    question: "「源氏物語」を書いたのは誰ですか？",
+    options: ["紀貫之", "清少納言", "紫式部", "菅原道真"],
+    correctAnswer: 2
   },
   {
-    id: 4,
-    question: "富士山の高さは約何メートル？",
-    options: ["3,776m", "3,677m", "3,767m", "3,876m"],
+    id: 'sample3',
+    question: "神奈川の県鳥は？",
+    options: ["ハト", "メジロ", "カモメ", "ヒバリ"],
+    correctAnswer: 2
+  },
+  {
+    id: 'sample4',
+    question: "ノーベル平和賞を日本人として初めて受賞したのは誰ですか？",
+    options: ["佐藤栄作", "湯川秀樹", "大江健三郎", "本庶佑"],
     correctAnswer: 0
   },
   {
-    id: 5,
-    question: "日本で最も長い川は？",
-    options: ["利根川", "信濃川", "石狩川", "北上川"],
-    correctAnswer: 1
+    id: 'sample5',
+    question: "100を「半分」で割って、１を足した。いくつ？",
+    options: ["51", "45", "22", "3"],
+    correctAnswer: 3
+  }
+];
+
+const mainQuizQuestions = [
+  {
+    "id": 1,
+    "question": "日本では、まだ食べられるのに捨てられてしまう「食品ロス」が問題になっています。日本人一人が1日に捨てている食品ロスの量は、次のうちどれに例えられているでしょう？",
+    "options": [
+      "角砂糖1個",
+      "おにぎり1個",
+      "食パン1枚",
+      "バナナ1本"
+    ],
+    "correctAnswer": 1,
+    "explanation": "日本では年間約523万トンの食品ロスが発生しており、これは国民一人当たり毎日おにぎり約1個分（約113グラム）に相当します。"
+  },
+  {
+    "id": 2,
+    "question": "私たちが普段飲んでいる500mlのペットボトル。これ1本を「作る」ためには中に入れる飲み水とは別にどのくらいの水が必要でしょうか？",
+    "options": [
+      "ほぼ同じ量の0.5リットル",
+      "2倍の1リットル",
+      "6倍の3リットル",
+      "10倍の5リットル"
+    ],
+    "correctAnswer": 2,
+    "explanation": "ペットボトル1本の製造には、中身の飲料とは別に約3リットルの水が必要です。プラスチックの原料採掘から製造まで多くの水が使われています。"
+  },
+  {
+    "id": 3,
+    "question": "世界全体で見たとき、女性が無報酬で行う家事や育児などのケア労働時間は、男性に比べておよそ何倍でしょうか？",
+    "options": [
+      "ほぼ同じ",
+      "約1.5倍",
+      "約3倍",
+      "約5倍"
+    ],
+    "correctAnswer": 2,
+    "explanation": "世界的に見て、女性は男性の約3倍の時間を無報酬のケア労働に費やしています。これはジェンダー平等の大きな課題の一つです。"
+  },
+  {
+    "id": 4,
+    "question": "ある検索エンジンを使って検索すると収益の約80%が植樹活動に寄付されるサービスがあります。この検索エンジンは何でしょう？",
+    "options": [
+      "Greennie (グリーニー)",
+      "Forestia (フォレスティア)",
+      "Ecosia (エコシア)",
+      "Planterra (プランテラ)"
+    ],
+    "correctAnswer": 2,
+    "explanation": "Ecosia（エコシア）は検索広告収益の約80%を世界中の植樹プロジェクトに寄付しているドイツ発の検索エンジンです。"
+  },
+  {
+    "id": 5,
+    "question": "Tシャツ1枚を作るのに必要とされる水の量はおよそどのくらいでしょう？",
+    "options": [
+      "お風呂一杯分（約200リットル）",
+      "ドラム缶5本分（約1,000リットル）",
+      "人が2年半で飲む水の量（約2,700リットル）",
+      "小学校のプール半分（約150,000リットル）"
+    ],
+    "correctAnswer": 2,
+    "explanation": "Tシャツ1枚の製造には約2,700リットルの水が必要です。これは綿花の栽培から製品化までの全工程で使用される水の量です。"
+  },
+  {
+    "id": 6,
+    "question": "海に流れ出るプラスチックごみは、2050年に何より多くなると予測されているでしょう？",
+    "options": [
+      "海に浮かぶ全ての船の総重量",
+      "海にいる全ての魚の総重量",
+      "世界中のサンゴ礁の総重量",
+      "世界中の海岸にある砂浜の総重量"
+    ],
+    "correctAnswer": 1,
+    "explanation": "現在のペースが続くと、2050年には海洋プラスチックごみの総重量が魚の総重量を上回ると予測されています。"
+  },
+  {
+    "id": 7,
+    "question": "SDGs目標13「気候変動に具体的な対策を」に関連して、国連のパリ協定では、2℃未満の目標達成を目指していますが、これに加えてより野心的に目標とされている気温上昇の上限はどれでしょう？",
+    "options": [
+      "1.5°C",
+      "2.5°C",
+      "3°C",
+      "4°C"
+    ],
+    "correctAnswer": 0,
+    "explanation": "パリ協定では産業革命前からの気温上昇を2℃未満に抑えることを目標とし、さらに1.5℃に抑える努力を追求することが合意されています。"
+  },
+  {
+    "id": 8,
+    "question": "SDGsの目標12「つくる責任 つかう責任」において、Circular Economy（循環型経済）の概念が重要視されています。以下のうち循環型経済の特徴として最も適切なものはどれでしょう？",
+    "options": [
+      "資源の採掘を最大化し続ける",
+      "大量生産・大量消費を促進する",
+      "使い捨て製品の普及を奨励する",
+      "製品の寿命を延ばし廃棄物を削減する"
+    ],
+    "correctAnswer": 3,
+    "explanation": "循環型経済は、製品の寿命を延ばし、再利用・リサイクルを促進することで廃棄物を最小限に抑え、資源を循環させる経済モデルです。"
+  },
+  {
+    "id": 9,
+    "question": "ギグ・ワーカー（単発仕事を請け負う人）がSDGs目標8の課題となる主な理由は何でしょう？",
+    "options": [
+      "働く時間が不規則で生活リズムが崩れる",
+      "専門的スキルが身につきにくい",
+      "雇用契約がないため病気や失業時の社会保障が不十分",
+      "デジタル機器依存度が高まる"
+    ],
+    "correctAnswer": 2,
+    "explanation": "ギグワーカーは雇用契約がないため、健康保険や失業保険などの社会保障が不十分で、「ディーセント・ワーク（働きがいのある人間らしい仕事）」の課題となっています。"
+  },
+  {
+    "id": 10,
+    "question": "地球温暖化の強力な温室効果ガスの1つ「メタン」が多く発生する食生活の要因は？",
+    "options": [
+      "食品輸送の排気ガス",
+      "大量の化学肥料を使ったトウモロコシ畑",
+      "牛のゲップやおなら",
+      "食品工場で燃やす燃料"
+    ],
+    "correctAnswer": 2,
+    "explanation": "牛などの反芻動物は消化の過程で大量のメタンガスを発生させます。メタンは二酸化炭素の約25倍の温室効果があります。"
   }
 ];
 
@@ -168,25 +276,48 @@ class Room {
         timestamp: Date.now()
       });
 
-      // 10秒後に結果表示
+      // 20秒後に結果表示
       setTimeout(() => {
         this.showQuestionResults();
-      }, 10000);
+      }, 20000);
     }, 100); // 100ms遅延
   }
 
   startPreparation() {
-    console.log('本番準備フェーズ開始');
-    this.gameState = 'preparation';
+    console.log('サンプルクイズ終了 - ランキング計算');
 
+    // サンプルクイズのランキングを計算
+    const rankings = this.calculateRanking('sample');
+
+    this.gameState = 'sampleRanking';
+
+    const rankingStartTime = Date.now();
     this.broadcast({
       type: 'sampleQuizEnd',
+      rankings: rankings,
+      quizType: 'sample',
+      totalQuestions: 5,
+      startTime: rankingStartTime,
+      duration: 10,
       timestamp: Date.now()
     });
 
-    // 10秒後に本番クイズ開始
+    // 10秒後に本番準備フェーズへ
     setTimeout(() => {
-      this.startMainQuiz();
+      console.log('本番準備フェーズ開始');
+      this.gameState = 'preparation';
+
+      const prepStartTime = Date.now();
+      this.broadcast({
+        type: 'preparationStart',
+        startTime: prepStartTime,
+        timestamp: Date.now()
+      });
+
+      // さらに10秒後に本番クイズ開始
+      setTimeout(() => {
+        this.startMainQuiz();
+      }, 10000);
     }, 10000);
   }
 
@@ -218,10 +349,10 @@ class Room {
         timestamp: Date.now()
       });
 
-      // 20秒後に結果表示
+      // 60秒後に結果表示
       setTimeout(() => {
         this.showQuestionResults();
-      }, 20000);
+      }, 60000);
     }, 100); // 100ms遅延
   }
 
@@ -245,6 +376,7 @@ class Room {
     const currentQuestionData = questions[this.currentQuestion];
     const correctAnswer = currentQuestionData.correctAnswer;
     const correctOption = currentQuestionData.options[correctAnswer];
+    const explanation = currentQuestionData.explanation || '';
 
     // 正解者数を計算
     let correctCount = 0;
@@ -264,6 +396,7 @@ class Room {
       result: {
         correctAnswer: correctAnswer,
         correctOption: correctOption,
+        explanation: explanation,
         questionIndex: this.currentQuestion,
         isMainQuiz: this.isMainQuiz,
         correctCount: correctCount,
@@ -272,10 +405,27 @@ class Room {
       timestamp: Date.now()
     });
 
+    // サンプル問題の場合は3秒後に自動進行
+    if (!this.isMainQuiz) {
+      setTimeout(() => {
+        this.startCountdown();
+      }, 3000);
+    }
+    // 本番問題の場合はホストが解説終了ボタンを押すまで待機
+  }
+
+  startCountdown() {
+    console.log('カウントダウン開始');
+
+    this.broadcast({
+      type: 'countdownStart',
+      timestamp: Date.now()
+    });
+
     // 3秒後に次の問題または終了
     setTimeout(() => {
       this.nextQuestion();
-    }, 10000);
+    }, 3000);
   }
 
   nextQuestion() {
@@ -283,7 +433,7 @@ class Room {
 
     if (!this.isMainQuiz) {
       // サンプルクイズ中
-      if (this.currentQuestion >= 2) {
+      if (this.currentQuestion >= 5) {
         console.log('サンプルクイズ終了 - 本番準備へ');
         this.startPreparation();
       } else {
@@ -306,15 +456,15 @@ class Room {
             timestamp: Date.now()
           });
 
-          // 10秒後に結果表示
+          // 20秒後に結果表示
           setTimeout(() => {
             this.showQuestionResults();
-          }, 10000);
-        }, 100); // 100ms遅延
+          }, 20000);
+        }, 1000); // 100ms遅延
       }
     } else {
       // 本番クイズ中
-      if (this.currentQuestion >= 5) {
+      if (this.currentQuestion >= 10) {
         console.log('本番クイズ終了');
         this.endGame();
       } else {
@@ -337,49 +487,87 @@ class Room {
             timestamp: Date.now()
           });
 
-          // 20秒後に結果表示
+          // 60秒後に結果表示
           setTimeout(() => {
             this.showQuestionResults();
-          }, 20000);
+          }, 60000);
         }, 100); // 100ms遅延
       }
     }
   }
 
-  endGame() {
-    this.gameState = 'finished';
+  calculateRanking(quizType) {
+    const rankings = [];
+    const questions = quizType === 'sample' ? sampleQuizQuestions : mainQuizQuestions;
+    const startIndex = quizType === 'sample' ? 0 : 0;
+    const endIndex = quizType === 'sample' ? 5 : 10;
+    const timeoutPenalty = quizType === 'sample' ? 20000 : 60000;
 
-    // スコアと回答時間を計算
     this.players.forEach((player, playerId) => {
       let score = 0;
-      let totalAnswerTime = 0; // 合計回答時間（ミリ秒）
+      let totalAnswerTime = 0;
 
-      // 本番クイズのみをカウント（問題インデックス0-4）
-      for (let questionIndex = 0; questionIndex < 5; questionIndex++) {
-        const questionAnswers = this.answers.get(questionIndex);
+      for (let i = startIndex; i < endIndex; i++) {
+        const questionAnswers = this.answers.get(i);
         const playerAnswer = questionAnswers ? questionAnswers.get(playerId) : null;
-        const correctAnswer = mainQuizQuestions[questionIndex].correctAnswer;
+        const correctAnswer = questions[i].correctAnswer;
 
         if (playerAnswer && playerAnswer.answerIndex === correctAnswer) {
-          // 正解の場合
           score++;
           totalAnswerTime += playerAnswer.answerTime || 0;
         } else {
-          // 不正解または未回答の場合は20秒（20000ms）を加算
-          totalAnswerTime += 20000;
+          totalAnswerTime += timeoutPenalty;
         }
       }
 
-      player.score = score;
-      player.totalAnswerTime = totalAnswerTime;
-
-      console.log(`Player ${player.name}: score=${score}, totalAnswerTime=${totalAnswerTime}ms`);
+      rankings.push({
+        playerId,
+        playerName: player.name,
+        score,
+        totalAnswerTime
+      });
     });
 
+    // ソート: 正解数降順 → 回答時間昇順 → プレイヤーID昇順
+    rankings.sort((a, b) => {
+      if (b.score !== a.score) return b.score - a.score;
+      if (a.totalAnswerTime !== b.totalAnswerTime)
+        return a.totalAnswerTime - b.totalAnswerTime;
+      return a.playerId.localeCompare(b.playerId);
+    });
+
+    // 順位を付与
+    rankings.forEach((ranking, index) => {
+      ranking.rank = index + 1;
+    });
+
+    console.log(`${quizType}クイズのランキング計算完了:`, rankings);
+    return rankings;
+  }
+
+  endGame() {
+    this.gameState = 'finished';
+
+    // ランキングを計算
+    const rankings = this.calculateRanking('main');
+
+    // プレイヤー情報を更新
+    rankings.forEach(ranking => {
+      const player = this.players.get(ranking.playerId);
+      if (player) {
+        player.score = ranking.score;
+        player.totalAnswerTime = ranking.totalAnswerTime;
+      }
+    });
+
+    const rankingStartTime = Date.now();
     this.broadcast({
       type: 'gameEnd',
+      rankings: rankings,
       players: this.getPlayersArray(),
       allAnswers: Array.from(this.answers.entries()),
+      startTime: rankingStartTime,
+      duration: 15,
       timestamp: Date.now()
     });
   }
@@ -465,6 +653,14 @@ wss.on('connection', (ws, req) => {
               message.answerIndex,
               message.answerTime
             );
+          }
+          break;
+
+        case 'explanationEnd':
+          console.log('📨 explanationEndメッセージ受信 - roomId:', roomId);
+          if (roomId && rooms.has(roomId)) {
+            console.log('  カウントダウン開始');
+            rooms.get(roomId).startCountdown();
           }
           break;
 

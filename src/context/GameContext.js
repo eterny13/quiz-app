@@ -27,6 +27,11 @@ export const GameProvider = ({ children }) => {
   const [allAnswers, setAllAnswers] = useState([]);
   const [serverTimeOffset, setServerTimeOffset] = useState(0); // ms: serverTime - localTime
   const [currentQuestionData, setCurrentQuestionData] = useState(null); // サーバーから受信した問題データ
+  const [currentRankings, setCurrentRankings] = useState(null); // ランキングデータ
+  const [rankingQuizType, setRankingQuizType] = useState(null); // 'sample' or 'main'
+  const [countdown, setCountdown] = useState(null); // カウントダウン表示用
+  const [rankingStartTime, setRankingStartTime] = useState(null); // ランキング表示開始時刻
+  const [rankingDuration, setRankingDuration] = useState(null); // ランキング表示時間（秒）
 
   const wsRef = useRef(null);
   const timerRef = useRef(null);
@@ -204,7 +209,16 @@ export const GameProvider = ({ children }) => {
         break;
 
       case 'sampleQuizEnd':
-        console.log('サンプルクイズ終了 - 本番準備画面へ');
+        console.log('サンプルクイズ終了 - ランキング表示');
+        setCurrentRankings(message.rankings);
+        setRankingQuizType('sample');
+        setRankingStartTime(message.startTime);
+        setRankingDuration(message.duration);
+        setGameState('sampleRanking');
+        break;
+
+      case 'preparationStart':
+        console.log('本番準備画面へ');
         setGameState('preparation');
         setPreparationTimeLeft(10);
         startPreparationTimer(message.startTime);
@@ -228,8 +242,8 @@ export const GameProvider = ({ children }) => {
         setShowResults(false);
         setCurrentQuestionResult(null);
         setCurrentQuestionData(message.questionData); // サーバーから受信した問題データを保存
-        // duration をサーバー送信に合わせる（サンプル10s / 本番20s）
-        const duration = message.isMainQuiz ? 20 : 10;
+        // duration をサーバー送信に合わせる（サンプル20s / 本番60s）
+        const duration = message.isMainQuiz ? 60 : 20;
         // サーバー startTime を利用して残り時間を同期して開始
         startQuestionTimer(message.startTime, duration);
         break;
@@ -238,14 +252,33 @@ export const GameProvider = ({ children }) => {
         console.log('問題終了 - 結果表示:', message.result);
         setShowResults(true);
         setCurrentQuestionResult(message.result);
+        setCountdown(null);
         clearTimer();
         break;
 
+      case 'countdownStart':
+        console.log('カウントダウン開始');
+        setCountdown(3);
+        // カウントダウンタイマー開始
+        let count = 3;
+        const countdownInterval = setInterval(() => {
+          count--;
+          setCountdown(count);
+          if (count <= 0) {
+            clearInterval(countdownInterval);
+          }
+        }, 1000);
+        break;
+
       case 'gameEnd':
-        console.log('ゲーム終了 - プレイヤー情報:', message.players);
-        setGameState('finished');
+        console.log('ゲーム終了 - ランキング表示');
+        setCurrentRankings(message.rankings);
+        setRankingQuizType('main');
+        setRankingStartTime(message.startTime);
+        setRankingDuration(message.duration);
         setPlayers(message.players); // プレイヤー情報を更新（スコアと回答時間を含む）
         setAllAnswers(message.allAnswers);
+        setGameState('finalRanking');
         clearTimer();
         break;
 
@@ -423,7 +456,7 @@ export const GameProvider = ({ children }) => {
   // 問題タイマー開始（startTime はサーバー時刻、duration 秒）
   const startQuestionTimer = (startTime = null, duration = null) => {
     clearTimer();
-    const dur = duration != null ? duration : (isMainQuiz ? 20 : 10);
+    const dur = duration != null ? duration : (isMainQuiz ? 60 : 20);
     if (startTime) {
       const serverNow = getServerNow();
       const elapsed = Math.floor((serverNow - startTime) / 1000);
@@ -507,6 +540,17 @@ export const GameProvider = ({ children }) => {
     }
   };
 
+  // 解説終了（ホストのみ）
+  const endExplanation = () => {
+    if (!isHost) return;
+    
+    console.log('解説終了ボタン押下');
+    sendMessage({
+      type: 'explanationEnd',
+      timestamp: Date.now()
+    });
+  };
+
   // ルーム退出
   const leaveRoom = () => {
     if (wsRef.current) {
@@ -559,11 +603,19 @@ export const GameProvider = ({ children }) => {
       currentQuestionResult,
       allAnswers,
       currentQuestionData,
+      currentRankings,
+      rankingQuizType,
+      countdown,
+      rankingStartTime,
+      rankingDuration,
+      serverTimeOffset,
+      getServerNow,
       connectToRoom,
       startGame,
       setPlayerReady,
       submitAnswer,
       nextQuestion,
+      endExplanation,
       leaveRoom,
       sendMessage
     }}>

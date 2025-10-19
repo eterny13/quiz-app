@@ -45,14 +45,14 @@ export default function PreparationScreen() {
         <View style={styles.infoItem}>
           <Text style={styles.infoIcon}>📝</Text>
           <Text style={styles.infoText}>
-            全5問の4択クイズです
+            全10問の4択クイズです
           </Text>
         </View>
 
         <View style={styles.infoItem}>
           <Text style={styles.infoIcon}>⏰</Text>
           <Text style={styles.infoText}>
-            各問題の制限時間は20秒です
+            各問題の制限時間は60秒です
           </Text>
         </View>
 
@@ -63,12 +63,6 @@ export default function PreparationScreen() {
           </Text>
         </View>
 
-        <View style={styles.infoItem}>
-          <Text style={styles.infoIcon}>🚀</Text>
-          <Text style={styles.infoText}>
-            全員同時スタートで公平に競争！
-          </Text>
-        </View>
       </View>
 
       <View style={styles.playersInfo}>
