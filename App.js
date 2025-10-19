@@ -8,6 +8,8 @@ import SyncQuizScreen from './src/screens/SyncQuizScreen';
 import InstructionsScreen from './src/screens/InstructionsScreen';
 import PreparationScreen from './src/screens/PreparationScreen';
 import RankingScreen from './src/screens/RankingScreen';
+import RankingAnimationScreen from './src/screens/RankingAnimationScreen';
+import FinalResultsScreen from './src/screens/FinalResultsScreen';
 
 // Web対応のストレージ
 const storage = {
@@ -32,7 +34,7 @@ const storage = {
 function AppContent() {
   const [currentScreen, setCurrentScreen] = useState('login');
   const [gameMode, setGameMode] = useState('single'); // 'single' or 'multi'
-  const { gameState, roomId } = useGame();
+  const { gameState, roomId, currentRankings, rankingQuizType, rankingStartTime, rankingDuration, getServerNow } = useGame();
   const [user, setUser] = useState(null);
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [userName, setUserName] = useState('');
@@ -482,12 +484,18 @@ function AppContent() {
       } else if (gameState === 'sampleQuiz') {
         console.log('  → syncQuiz画面へ (サンプル)');
         setCurrentScreen('syncQuiz');
+      } else if (gameState === 'sampleRanking') {
+        console.log('  → sampleRanking画面へ');
+        setCurrentScreen('sampleRanking');
       } else if (gameState === 'preparation') {
         console.log('  → preparation画面へ');
         setCurrentScreen('preparation');
       } else if (gameState === 'mainQuiz') {
         console.log('  → syncQuiz画面へ (本番)');
         setCurrentScreen('syncQuiz');
+      } else if (gameState === 'finalRanking') {
+        console.log('  → finalRanking画面へ');
+        setCurrentScreen('finalRanking');
       } else if (gameState === 'finished') {
         console.log('  → ranking画面へ');
         setCurrentScreen('ranking');
@@ -526,6 +534,49 @@ function AppContent() {
       <SyncQuizScreen
         user={user}
         onFinish={() => setCurrentScreen('ranking')}
+      />
+    );
+  }
+
+  if (currentScreen === 'sampleRanking') {
+    return (
+      <RankingAnimationScreen
+        rankings={currentRankings}
+        quizType="sample"
+        currentUserId={user?.id}
+        startTime={rankingStartTime}
+        duration={rankingDuration}
+        getServerNow={getServerNow}
+        onComplete={() => {
+          // サーバー側で自動的にpreparationStartが送られるので、何もしない
+          console.log('サンプルランキング表示完了 - サーバーからの指示を待機');
+        }}
+      />
+    );
+  }
+
+  if (currentScreen === 'finalRanking') {
+    return (
+      <RankingAnimationScreen
+        rankings={currentRankings}
+        quizType="main"
+        currentUserId={user?.id}
+        startTime={rankingStartTime}
+        duration={rankingDuration}
+        getServerNow={getServerNow}
+        onComplete={() => {
+          // 本番ランキング表示完了後は最終結果画面へ
+          setCurrentScreen('finalResults');
+        }}
+      />
+    );
+  }
+
+  if (currentScreen === 'finalResults') {
+    return (
+      <FinalResultsScreen
+        rankings={currentRankings}
+        onBackToLogin={goToLogin}
       />
     );
   }

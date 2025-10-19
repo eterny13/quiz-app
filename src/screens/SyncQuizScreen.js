@@ -20,7 +20,9 @@ export default function SyncQuizScreen({ user, onFinish }) {
     gameState,
     submitAnswer,
     nextQuestion,
-    currentQuestionData
+    currentQuestionData,
+    countdown,
+    endExplanation
   } = useGame();
 
   const [selectedAnswer, setSelectedAnswer] = useState(null);
@@ -44,16 +46,7 @@ export default function SyncQuizScreen({ user, onFinish }) {
     }
   }, [gameState, onFinish]);
 
-  // 結果表示後の次の問題への移行（ホストのみ）
-  useEffect(() => {
-    if (showResults && isHost) {
-      const timer = setTimeout(() => {
-        nextQuestion();
-      }, 3000);
-      
-      return () => clearTimeout(timer);
-    }
-  }, [showResults, isHost, nextQuestion]);
+  // 自動進行は削除（ホストが解説終了ボタンを押すまで待機）
 
   const handleAnswer = (answerIndex) => {
     if (hasAnswered || timeLeft <= 0) return;
@@ -137,7 +130,7 @@ export default function SyncQuizScreen({ user, onFinish }) {
   }
 
   const question = currentQuestionData;
-  const totalQuestions = isMainQuiz ? 5 : 2;
+  const totalQuestions = isMainQuiz ? 10 : 5;
 
   return (
     <View style={styles.container}>
@@ -178,6 +171,24 @@ export default function SyncQuizScreen({ user, onFinish }) {
               🎯 正解者: {currentQuestionResult.correctCount} / {currentQuestionResult.totalPlayers}人
             </Text>
           )}
+          {currentQuestionResult.explanation && (
+            <View style={styles.explanationContainer}>
+              <Text style={styles.explanationTitle}>📖 解説</Text>
+              <Text style={styles.explanationText}>
+                {currentQuestionResult.explanation}
+              </Text>
+            </View>
+          )}
+          {isHost && isMainQuiz && countdown === null && (
+            <TouchableOpacity
+              style={styles.nextButton}
+              onPress={endExplanation}
+            >
+              <Text style={styles.nextButtonText}>
+                解説終了 - 次へ進む
+              </Text>
+            </TouchableOpacity>
+          )}
         </View>
       )}
 
@@ -204,10 +215,13 @@ export default function SyncQuizScreen({ user, onFinish }) {
         </View>
       )}
 
-      {showResults && (
-        <View style={styles.waitingNextContainer}>
-          <Text style={styles.waitingNextText}>
-            次の問題を準備中...
+      {countdown !== null && countdown > 0 && (
+        <View style={styles.countdownContainer}>
+          <Text style={styles.countdownText}>
+            次の問題まで
+          </Text>
+          <Text style={styles.countdownNumber}>
+            {countdown}
           </Text>
         </View>
       )}
@@ -406,5 +420,56 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#f44336',
     fontWeight: 'bold',
+  },
+  explanationContainer: {
+    marginTop: 15,
+    padding: 15,
+    backgroundColor: '#f0f8ff',
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#2196f3',
+  },
+  explanationTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#1976d2',
+    marginBottom: 8,
+  },
+  explanationText: {
+    fontSize: 14,
+    color: '#333',
+    lineHeight: 20,
+  },
+  nextButton: {
+    marginTop: 15,
+    backgroundColor: '#ff9800',
+    padding: 15,
+    borderRadius: 10,
+    alignItems: 'center',
+  },
+  nextButtonText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: 'white',
+  },
+  countdownContainer: {
+    backgroundColor: '#fff3e0',
+    padding: 20,
+    borderRadius: 15,
+    marginTop: 20,
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#ff9800',
+  },
+  countdownText: {
+    fontSize: 18,
+    color: '#f57c00',
+    fontWeight: 'bold',
+    marginBottom: 10,
+  },
+  countdownNumber: {
+    fontSize: 48,
+    fontWeight: 'bold',
+    color: '#ff9800',
   },
 });
